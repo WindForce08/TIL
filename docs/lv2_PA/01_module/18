@@ -1,1 +1,335 @@
-cod
+희우님, 이 목적이라면 **실제 군 통신 용어를 그대로 흉내 내기보다, 군 통신의 장점인 "표준화된 짧은 메시지 + 명확한 명령 + 확인 절차"를 AI CLI용으로 가져오는 것**이 좋습니다.
+
+핵심은 **짧게 말하는 것 자체가 아니라, AI가 임의로 해석할 여지를 없애는 것**입니다.
+
+## 1. 군 통신에서 가져올 만한 핵심 원칙
+
+전술 무전은 기본적으로 다음 특성이 있습니다.
+
+| 원칙 | 의미 | AI에 적용 |
+|---|---|---|
+| **Brevity** | 불필요한 말을 줄임 | 프롬프트를 짧게 |
+| **Standardization** | 정해진 용어 사용 | 명령어를 고정 |
+| **Clarity** | 애매한 표현 최소화 | 목적/범위/제약 분리 |
+| **Acknowledgement** | 수신 확인 | AI가 먼저 요구사항 확인 |
+| **Read-back** | 전달받은 내용을 다시 읽음 | AI가 작업 의도를 재진술 |
+| **Priority** | 중요도 구분 | 반드시 해야 할 것과 선택사항 구분 |
+| **Authentication** | 통신 상대 확인 | AI 작업 대상/환경 명시 |
+
+특히 **Read-back**이 희우님이 원하는 목적에 굉장히 중요합니다.
+
+---
+
+# 2. AI용으로 바꾸면 이렇게 됩니다
+
+예를 들어 평범하게:
+
+> 이 폴더 한번 분석해보고 뭐가 문제인지 알려줘. 필요하면 파일도 좀 봐줘.
+
+라고 하면 AI가 상당히 자유롭게 해석합니다.
+
+대신:
+
+```text
+TASK: ANALYZE
+TARGET: ./project
+SCOPE: structure + source + config
+EXCLUDE: .git, build, install, log, cache
+MODIFY: NO
+OUTPUT: Korean, concise
+```
+
+이렇게 보내는 겁니다.
+
+AI 입장에서는 훨씬 명확합니다.
+
+---
+
+# 3. 제가 추천하는 AI 통신 규격
+
+희우님이 직접 하나 만들어서 쓰신다면 다음 형태가 좋습니다.
+
+```text
+[CMD]
+[OBJ]
+[SCOPE]
+[CONSTRAINT]
+[OUTPUT]
+```
+
+### CMD — 무엇을 할 것인가
+
+```text
+ANALYZE
+CREATE
+EDIT
+FIX
+EXPLAIN
+TEST
+CHECK
+SEARCH
+SUMMARIZE
+```
+
+### OBJ — 무엇을 대상으로 하는가
+
+```text
+TARGET: ./src
+TARGET: package.xml
+TARGET: current project
+TARGET: test_rotation.py
+```
+
+### SCOPE — 어디까지 할 것인가
+
+```text
+SCOPE: structure
+SCOPE: source
+SCOPE: tests
+SCOPE: all
+```
+
+### CONSTRAINT — 하면 안 되는 것
+
+```text
+MODIFY: NO
+DELETE: NO
+EXECUTE: NO
+SCOPE_LIMIT: TARGET_ONLY
+```
+
+### OUTPUT — 결과를 어떻게 줄 것인가
+
+```text
+LANG: KO
+FORMAT: SUMMARY
+DETAIL: LOW
+```
+
+---
+
+# 4. 실제 사용 예시
+
+### 폴더 분석
+
+```text
+CMD: ANALYZE
+TARGET: .
+SCOPE: structure + source + config
+EXCLUDE: .git, build, install, log, cache
+MODIFY: NO
+OUTPUT: KO / concise
+```
+
+### 코드 오류 분석
+
+```text
+CMD: DEBUG
+TARGET: test_rotation.py
+SCOPE: error + root cause
+MODIFY: NO
+OUTPUT: KO / concise
+```
+
+### 코드 수정
+
+```text
+CMD: FIX
+TARGET: test_rotation.py
+ISSUE: failing rotation test
+SCOPE: minimal
+MODIFY: YES
+OUTPUT: KO / diff only
+```
+
+이런 식입니다.
+
+---
+
+# 5. 더 짧게 만들 수도 있습니다
+
+익숙해지면 필드명을 줄여도 됩니다.
+
+```text
+CMD=DEBUG
+T=test_rotation.py
+SCOPE=error/root-cause
+MOD=NO
+OUT=KO:SHORT
+```
+
+하지만 **처음에는 줄이지 않는 것을 추천**합니다.
+
+왜냐하면:
+
+> 짧은 명령 ≠ 효율적인 명령
+
+이기 때문입니다.
+
+AI에게 가장 좋은 것은 **압축된 자연어가 아니라 구조화된 정보**입니다.
+
+---
+
+# 6. 한 단계 더 나가면 "교신 프로토콜"을 만들 수 있습니다
+
+희우님이 이걸 계속 사용할 생각이라면 아예 본인만의 프로토콜을 하나 정해도 됩니다.
+
+예를 들어 이름을:
+
+```text
+HWP — Human to AI Work Protocol
+```
+
+이라고 하고,
+
+```text
+CMD   = 작업
+TGT   = 대상
+SCP   = 범위
+LIM   = 제한
+OUT   = 출력
+ACK   = 확인 방식
+```
+
+으로 정의합니다.
+
+그러면:
+
+```text
+CMD=ANALYZE
+TGT=.
+SCP=PROJECT
+LIM=NO_MODIFY
+OUT=KO_SHORT
+ACK=READBACK
+```
+
+AI는 작업 전에:
+
+```text
+ACK:
+ANALYZE current project.
+Scope: project structure.
+No modification.
+Output: concise Korean.
+Proceed?
+```
+
+라고 확인합니다.
+
+이렇게 하면 **통신량은 줄이면서 오해 가능성은 낮출 수 있습니다.**
+
+---
+
+# 7. 다만 군 통신에서 그대로 가져오면 안 좋은 것
+
+실제 군대에는 `Roger`, `Wilco`, `Over`, `Out`, `Copy` 같은 표현이 있지만 AI와 통신할 때 그대로 사용하는 건 추천하지 않습니다.
+
+예를 들어:
+
+```text
+Roger
+```
+
+는 단순히 수신 확인이고,
+
+```text
+Wilco
+```
+
+는 "Will comply", 즉 **지시에 따르겠다**는 의미입니다.
+
+AI에서는 이런 자연어 관용어보다:
+
+```text
+ACK
+```
+
+```text
+CONFIRMED
+```
+
+```text
+EXECUTING
+```
+
+```text
+BLOCKED
+```
+
+```text
+COMPLETED
+```
+
+같이 **상태를 직접 표현하는 것이 훨씬 명확합니다.**
+
+---
+
+# 8. 그리고 가장 중요한 것: Read-back
+
+제가 희우님이라면 이 기능을 반드시 넣겠습니다.
+
+예를 들어:
+
+```text
+CMD=FIX
+TGT=src/controller.py
+ISSUE=PID overshoot
+MOD=YES
+SCOPE=MINIMAL
+OUT=DIFF
+```
+
+AI가 바로 코드를 수정하는 게 아니라:
+
+```text
+ACK
+CMD: FIX
+TARGET: src/controller.py
+ISSUE: PID overshoot
+MODIFY: YES
+SCOPE: MINIMAL
+OUTPUT: DIFF
+
+CONFIRM?
+```
+
+그리고 희우님이:
+
+```text
+GO
+```
+
+라고 하면 실행합니다.
+
+이렇게 하면 **짧은 통신 + 의도 보존 + 실수 방지**를 동시에 얻을 수 있습니다.
+
+---
+
+## 제가 추천하는 최종 형태
+
+희우님은 코딩/Physical AI 작업을 많이 하니까 다음 정도가 가장 실용적입니다.
+
+```text
+CMD=작업
+TGT=대상
+SCP=범위
+LIM=제약
+MOD=수정 여부
+OUT=출력 형식
+```
+
+예:
+
+```text
+CMD=ANALYZE
+TGT=.
+SCP=ROS2_PROJECT
+LIM=EXCLUDE_BUILD
+MOD=NO
+OUT=KO_SHORT
+```
+
+그리고 **파일 수정·삭제·실행처럼 위험도가 있는 작업에만 `ACK=READBACK`을 요구**하는 방식이 좋습니다.
+
+이걸 아예 **희우님 전용 AI CLI 통신 프로토콜 + Skill**로 만들어버리면 상당히 재미있습니다. `ANALYZE`, `FIX`, `RUN`, `SEARCH`, `REPORT` 같은 명령 체계와 **ACK → EXECUTE → RESULT** 상태 체계까지 정의하면, 매번 긴 자연어 프롬프트를 쓰지 않아도 됩니다.
